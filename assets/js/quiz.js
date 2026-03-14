@@ -246,12 +246,14 @@ function showResult(result) {
   const grid = document.getElementById('gabarito-grid');
   result.details.forEach((d, i) => {
     const div = document.createElement('div');
-    div.className = `gab-item ${d.correct ? 'ok' : 'fail'}`;
+    div.className = `gab-item ${d.correct ? 'ok' : 'fail'} clickable`;
+    div.title = "Clique para ver detalhes";
     div.innerHTML = `
       <div class="gab-q">Q${i + 1}</div>
       <div class="gab-ans">${d.selected || '—'} ${d.correct ? '✓' : '✗'}</div>
       ${!d.correct ? `<div style="font-size:0.68rem;opacity:0.8">Gab: ${d.gabarito}</div>` : ''}
     `;
+    div.onclick = () => openQuestionDetails(i, d);
     grid.appendChild(div);
   });
 
@@ -305,4 +307,72 @@ function showAchievementToast(ach) {
     toast.classList.remove('show');
     toast.addEventListener('transitionend', () => toast.remove(), { once: true });
   }, 5000);
-}
+}
+
+// ─── Modal de gabarito detalhado ─────────────────────────────────────────────
+function openQuestionDetails(index, detail) {
+  const q = questions[index];
+  if (!q) return;
+
+  const modal = document.getElementById('question-modal');
+  const title = document.getElementById('modal-q-title');
+  const body = document.getElementById('modal-q-body');
+
+  title.textContent = `Questão ${index + 1} — ENEM ${q.ano || ''}`;
+  
+  let altsHtml = '';
+  (q.alternativas || []).forEach(alt => {
+    const isCorrect = alt.letra === detail.gabarito;
+    const isSelected = alt.letra === detail.selected;
+    
+    let stateClass = '';
+    if (isCorrect) stateClass = 'correct';
+    else if (isSelected && !detail.correct) stateClass = 'wrong';
+
+    altsHtml += `
+      <div class="detail-alt ${stateClass}">
+        <span class="alt-letter">${alt.letra}</span>
+        ${alt.imgUrl
+          ? `<img src="${alt.imgUrl}" style="max-width:100%;max-height:120px;object-fit:contain;">`
+          : `<span>${alt.texto}</span>`
+        }
+      </div>
+    `;
+  });
+
+  body.innerHTML = `
+    <div class="question-meta" style="margin-bottom:16px;">
+      <span class="question-badge">${CATEGORY_LABELS[q.disciplina] || q.disciplina || ''}</span>
+    </div>
+    ${q.contexto ? `<div class="question-context" style="margin-bottom:16px;">${q.contexto}</div>` : ''}
+    ${q.imagens && q.imagens[0] ? `<div class="question-image" style="margin-bottom:16px;"><img src="${q.imagens[0]}"></div>` : ''}
+    <div class="question-text" style="font-weight:600; margin-bottom:20px;">${q.enunciado}</div>
+    <div class="alternatives">${altsHtml}</div>
+    ${!detail.correct ? `
+      <div style="margin-top:20px; padding:12px; background:#F0F5FF; border-radius:8px; font-size:0.9rem; color:var(--azul-escuro);">
+        💡 <strong>Dica:</strong> Você marcou a alternativa <strong>${detail.selected || 'nenhuma'}</strong>, mas a correta era a <strong>${detail.gabarito}</strong>.
+      </div>
+    ` : `
+      <div style="margin-top:20px; padding:12px; background:var(--verde-claro); border-radius:8px; font-size:0.9rem; color:#0a4a0a;">
+        ✅ Você acertou esta questão! Parabéns!
+      </div>
+    `}
+  `;
+
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden'; // Trava scroll
+}
+
+function closeModal() {
+  document.getElementById('question-modal').style.display = 'none';
+  document.body.style.overflow = ''; // Destrava scroll
+}
+
+// Fecha modal ao clicar fora
+window.onclick = function(event) {
+  const modal = document.getElementById('question-modal');
+  if (event.target == modal) {
+    closeModal();
+  }
+}
+
