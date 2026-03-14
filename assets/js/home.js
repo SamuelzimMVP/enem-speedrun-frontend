@@ -1,10 +1,17 @@
 // ─── Proteção de rota ─────────────────────────────────────────────────────────
-if (!isLoggedIn()) window.location.href = 'index.html';
+const isGuest = localStorage.getItem('isGuest') === 'true';
+
+if (!isLoggedIn() && !isGuest) {
+  window.location.href = 'index.html';
+}
 
 const user = getUser();
 if (user) {
   document.getElementById('user-name').textContent = user.nome;
   document.getElementById('banner-name').textContent = user.nome.split(' ')[0];
+} else if (isGuest) {
+  document.getElementById('user-name').textContent = 'Visitante';
+  document.getElementById('banner-name').textContent = 'Visitante';
 }
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
@@ -121,4 +128,18 @@ async function loadAchievements() {
 }
 
 // ─── Inicia ───────────────────────────────────────────────────────────────────
-loadAchievements();
+if (!isGuest) {
+  loadAchievements();
+} else {
+  const achSection = document.querySelector('.achievements-section');
+  if (achSection) {
+    achSection.innerHTML = `
+      <div class="section-label">Conquistas</div>
+      <div style="background: #f8f9fa; border: 2px dashed #ddd; border-radius: 12px; padding: 24px; text-align: center; color: #666;">
+        <div style="font-size: 1.5rem; margin-bottom: 8px;">🔒</div>
+        <p><strong>Crie uma conta</strong> para desbloquear conquistas nacionais, ganhar badges e competir no ranking!</p>
+        <button onclick="logout()" class="btn btn-primary" style="margin-top: 12px; padding: 8px 20px;">Criar Conta Agora</button>
+      </div>
+    `;
+  }
+}

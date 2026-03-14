@@ -1,5 +1,7 @@
 // ─── Proteção e carregamento de sessão ─────────────────────────────────────────
-if (!isLoggedIn()) window.location.href = 'index.html';
+if (!isLoggedIn() && localStorage.getItem('isGuest') !== 'true') {
+  window.location.href = 'index.html';
+}
 
 const session = JSON.parse(sessionStorage.getItem('quiz_session') || 'null');
 if (!session) window.location.href = 'home.html';
@@ -217,18 +219,26 @@ function showResult(result) {
         <div class="rs-value">${formatTime(result.timeSeconds)}</div>
         <div class="rs-label">Tempo total</div>
       </div>
-      <div class="result-stat">
-        <div class="rs-value">#${result.position}</div>
-        <div class="rs-label">Posição no ranking</div>
+      <div class="result-stat" style="${result.isGuest ? 'background: #fff0f0; border-color: #ffcccc;' : ''}">
+        <div class="rs-value">${result.isGuest ? '🔒' : '#' + result.position}</div>
+        <div class="rs-label">${result.isGuest ? 'Não salvo' : 'Posição no ranking'}</div>
       </div>
     </div>
+
+    ${result.isGuest ? `
+    <div style="background: #e8f0ff; border: 1px solid #b3d1ff; border-radius: 12px; padding: 16px; text-align: center; margin-bottom: 24px; color: #1a4a99;">
+      <strong>Modo Visitante:</strong> Seu tempo não foi salvo no ranking nacional. 
+      <a href="index.html" style="font-weight:700; color: #0056b3;">Crie uma conta</a> para competir com outros estudantes!
+    </div>
+    ` : ''}
+
     <div class="gabarito-section">
       <h3>📋 Gabarito detalhado</h3>
       <div class="gabarito-grid" id="gabarito-grid"></div>
     </div>
     <div class="result-actions">
-      <a href="home.html" class="btn btn-outline btn-lg">← Nova speedrun</a>
-      <a href="ranking.html" class="btn btn-primary btn-lg">Ver ranking 🏆</a>
+      <a href="home.html" class="btn btn-outline btn-lg">← Voltar ao Início</a>
+      ${result.isGuest ? '' : '<a href="ranking.html" class="btn btn-primary btn-lg">Ver ranking 🏆</a>'}
     </div>
   `;
 

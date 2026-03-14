@@ -228,6 +228,15 @@
       </div>
     </div>
 
+    <!-- Modo Visitante -->
+    <div style="text-align:center; margin-top: 24px;">
+      <button class="btn btn-outline" onclick="continueAsGuest()" style="padding: 12px 24px; font-weight: 700; border-radius: 30px; width: 100%;">
+        ⚡ Continuar como Visitante
+      </button>
+      <p style="font-size: 0.75rem; color: var(--cinza-medio); margin-top: 8px;">
+        (No modo visitante seus tempos não são salvos no ranking)
+      </p>
+    </div>
   </div>
 </div>
 
@@ -257,10 +266,19 @@
 
   function setLoading(btnId, loading) {
     const btn = document.getElementById(btnId);
-    btn.disabled = loading;
-    btn.innerHTML = loading
-      ? '<span class="spinner"></span> Aguarde...'
-      : (btnId === 'btn-login' ? 'Entrar' : 'Criar conta');
+    if (btn) {
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<span class="spinner"></span> Aguarde...'
+        : (btnId === 'btn-login' ? 'Entrar' : 'Criar conta');
+    }
+  }
+
+  function continueAsGuest() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.setItem('isGuest', 'true');
+    window.location.href = 'home.html';
   }
 
   async function handleLogin() {

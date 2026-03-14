@@ -64,6 +64,7 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('user');
+  localStorage.removeItem('isGuest');
   window.location.href = '/index.html';
 }
 
