@@ -505,3 +505,29 @@ footer strong { color: var(--branco); }
   color: rgba(255,255,255,0.6);
   line-height: 1.4;
 }
+
+/* ─── Imagens no Quiz ───────────────────────────────────────────────── */
+.question-main-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  margin: 16px auto;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border: 1px solid var(--cinza-borda);
+  background: var(--branco);
+}
+
+.question-inline-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 12px 0;
+  border-radius: var(--radius);
+}
+
+.question-context img, 
+.question-text img {
+  max-width: 100%;
+  height: auto;
+}

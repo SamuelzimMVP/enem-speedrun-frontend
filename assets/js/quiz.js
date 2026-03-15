@@ -40,6 +40,13 @@ function stopTimer() {
   clearInterval(timerInterval);
 }
 
+// ─── Helper para processar Markdown de imagens ─────────────────────────────────
+function parseMarkdownImages(text) {
+  if (!text) return '';
+  // Converte ![](url) para <img src="url" class="inline-image">
+  return text.replace(/!\[.*?\]\((.*?)\)/g, '<img src="$1" class="question-inline-img" alt="Imagem do enunciado">');
+}
+
 // ─── Renderiza questão atual ──────────────────────────────────────────────────
 function renderQuestion(index) {
   const q = questions[index];
@@ -56,29 +63,34 @@ function renderQuestion(index) {
   document.getElementById('progress-fill').style.width = pct + '%';
   document.getElementById('progress-text').textContent = `${pct}% concluído`;
 
-  // Contexto
+  // Contexto (com suporte a markdown de imagens)
   const ctxEl = document.getElementById('q-context');
   if (q.contexto && q.contexto.trim()) {
     ctxEl.style.display = 'block';
-    ctxEl.innerHTML = q.contexto;
+    ctxEl.innerHTML = parseMarkdownImages(q.contexto);
   } else {
     ctxEl.style.display = 'none';
   }
 
-  // Imagem
+  // Imagens Anexas (Múltiplas)
   const imgWrap = document.getElementById('q-image');
-  const imgEl   = document.getElementById('q-img');
-  const imgUrl  = q.imagens && q.imagens[0];
-  if (imgUrl) {
-    imgEl.src = imgUrl;
+  imgWrap.innerHTML = ''; // Limpa container
+  
+  if (q.imagens && q.imagens.length > 0) {
+    q.imagens.forEach(url => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.className = 'question-main-img';
+      img.onerror = () => img.style.display = 'none';
+      imgWrap.appendChild(img);
+    });
     imgWrap.style.display = 'block';
-    imgEl.onerror = () => { imgWrap.style.display = 'none'; };
   } else {
     imgWrap.style.display = 'none';
   }
 
-  // Enunciado
-  document.getElementById('q-text').innerHTML = q.enunciado || '';
+  // Enunciado (com suporte a markdown de imagens)
+  document.getElementById('q-text').innerHTML = parseMarkdownImages(q.enunciado || '');
 
   // Alternativas
   const altContainer = document.getElementById('alternatives');
@@ -337,9 +349,11 @@ function openQuestionDetails(questionId, detail, index) {
     <div class="question-meta" style="margin-bottom:16px;">
       <span class="question-badge">${CATEGORY_LABELS[q.disciplina] || q.disciplina || ''}</span>
     </div>
-    ${q.contexto ? `<div class="question-context" style="margin-bottom:16px;">${q.contexto}</div>` : ''}
-    ${q.imagens && q.imagens[0] ? `<div class="question-image" style="margin-bottom:16px;"><img src="${q.imagens[0]}"></div>` : ''}
-    <div class="question-text" style="font-weight:600; margin-bottom:20px;">${q.enunciado}</div>
+    ${q.contexto ? `<div class="question-context" style="margin-bottom:16px;">${parseMarkdownImages(q.contexto)}</div>` : ''}
+    <div class="modal-images" style="margin-bottom:16px;">
+      ${(q.imagens || []).map(url => `<img src="${url}" class="question-main-img" style="margin-bottom:8px;">`).join('')}
+    </div>
+    <div class="question-text" style="font-weight:600; margin-bottom:20px;">${parseMarkdownImages(q.enunciado)}</div>
     <div class="alternatives">${altsHtml}</div>
     ${!detail.correct ? `
       <div style="margin-top:20px; padding:12px; background:#F0F5FF; border-radius:8px; font-size:0.9rem; color:var(--azul-escuro);">
