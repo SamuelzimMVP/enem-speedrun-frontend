@@ -15,10 +15,15 @@ async function apiRequest(path, options = {}, _isRetry = false) {
 
   // Token expirado: tenta renovar automaticamente (uma única vez)
   if (res.status === 401 && !_isRetry) {
+    const isGuest = localStorage.getItem('isGuest') === 'true';
     const refreshed = await refreshSession();
+    
     if (refreshed) return apiRequest(path, options, true); // retry com novo token
-    // Se não conseguiu renovar, redireciona para login
-    logout();
+    
+    // Se não for visitante e não conseguiu renovar, redireciona para login
+    if (!isGuest) {
+      logout();
+    }
     return;
   }
 
