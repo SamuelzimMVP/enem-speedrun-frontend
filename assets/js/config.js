@@ -6,24 +6,23 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 
 // ─── Helper para requisições autenticadas ────────────────────────────────────
 async function apiRequest(path, options = {}, _isRetry = false) {
-  const token = localStorage.getItem('token');
+  const isGuest = localStorage.getItem('isGuest') === 'true';
+  const token = !isGuest ? localStorage.getItem('token') : null;
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+  
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const data = await res.json().catch(() => ({}));
 
   // Token expirado: tenta renovar automaticamente (uma única vez)
-  if (res.status === 401 && !_isRetry) {
-    const isGuest = localStorage.getItem('isGuest') === 'true';
+  if (res.status === 401 && !_isRetry && !isGuest) {
     const refreshed = await refreshSession();
     
     if (refreshed) return apiRequest(path, options, true); // retry com novo token
     
-    // Se não for visitante e não conseguiu renovar, redireciona para login
-    if (!isGuest) {
-      logout();
-    }
+    // Se não conseguiu renovar, redireciona para login
+    logout();
     return;
   }
 
